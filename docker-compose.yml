@@ -1,0 +1,36 @@
+# AlphaOmega — Docker Compose
+# Phase 1: Core pipeline only
+# Phase 4 will add the Ollama LLM service
+
+version: "3.8"
+
+services:
+  alphaomega:
+    build: .
+    volumes:
+      - ./profiles:/app/profiles
+      - ./db:/app/db
+      - ./reference:/app/reference
+      - ./data:/app/data
+      - ./output:/app/output
+      - ./config:/app/config
+      - ./templates:/app/templates
+    environment:
+      - ALPHAOMEGA_CONFIG=/app/config/default_config.yaml
+  # Phase 4 (uncomment when ready):
+  # ollama:
+  #   image: ollama/ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+
+  # volumes:
+  #   ollama_data:

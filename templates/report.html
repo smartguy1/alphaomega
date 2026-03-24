@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaOmega Genomic Report — {{ profile_name }}</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface-2: #242836;
+            --border: #2e3345;
+            --text: #e1e4ed;
+            --text-muted: #8b91a5;
+            --accent: #6c8cff;
+            --good: #34d399;
+            --bad: #f87171;
+            --neutral: #fbbf24;
+            --pharma: #a78bfa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .report-header {
+            background: linear-gradient(135deg, #1e2235 0%, #2a1f3d 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .report-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--pharma));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-header .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .report-header .generated {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: #2a1f1f;
+            border: 1px solid #5c3030;
+            border-left: 4px solid var(--bad);
+            border-radius: 8px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            color: #f0a0a0;
+        }
+
+        .disclaimer strong {
+            color: var(--bad);
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-card .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Domain sections */
+        .domain-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .domain-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .domain-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .domain-header .badge {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.2rem 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .domain-desc {
+            padding: 0.75rem 1.5rem 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Variant table */
+        .variant-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .variant-table th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+
+        .variant-table td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .variant-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .variant-table tr:hover {
+            background: rgba(108, 140, 255, 0.05);
+        }
+
+        /* rsID link */
+        .rsid-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 0.85rem;
+        }
+
+        .rsid-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Genotype badge */
+        .genotype {
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            background: var(--surface-2);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Magnitude / repute indicators */
+        .mag-bar {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .mag-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .mag-dot.good {
+            background: var(--good);
+        }
+
+        .mag-dot.bad {
+            background: var(--bad);
+        }
+
+        .mag-dot.neutral {
+            background: var(--neutral);
+        }
+
+        .mag-dot.unknown {
+            background: var(--text-muted);
+        }
+
+        .significance {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .sig-pathogenic {
+            background: rgba(248, 113, 113, 0.15);
+            color: var(--bad);
+        }
+
+        .sig-benign {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--good);
+        }
+
+        .sig-uncertain {
+            background: rgba(251, 191, 36, 0.15);
+            color: var(--neutral);
+        }
+
+        .sig-pharma {
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--pharma);
+        }
+
+        /* Stars */
+        .stars {
+            color: var(--neutral);
+            font-size: 0.8rem;
+        }
+
+        /* Summary text */
+        .summary-text {
+            color: var(--text);
+            font-size: 0.85rem;
+            max-width: 400px;
+        }
+
+        /* Avatar Grid */
+        .avatar-section {
+            margin-bottom: 2rem;
+        }
+
+        .avatar-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+        }
+
+        .avatar-card {
+            background: linear-gradient(145deg, var(--surface), var(--surface-2));
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .avatar-card .icon {
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-card .content h3 {
+            font-size: 0.95rem;
+            color: var(--text);
+            margin-bottom: 0.2rem;
+        }
+
+        .avatar-card .content p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Filters */
+        .filter-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .filter-group label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .filter-group select {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.4rem 0.8rem;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .filter-group select:focus {
+            border-color: var(--accent);
+        }
+
+        .filter-group input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 1.1rem;
+            height: 1.1rem;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Footer */
+        .report-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        /* Domain icons */
+        .domain-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                color: #333;
+                padding: 1rem;
+            }
+
+            .domain-section {
+                break-inside: avoid;
+            }
+
+            .report-header {
+                background: #f5f5f5;
+            }
+
+            .disclaimer {
+                background: #fff5f5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="report-header">
+            <h1>🧬 Genomic Report</h1>
+            <div class="subtitle">Profile: <strong>{{ profile_name }}</strong></div>
+            {% if build %}
+            <div class="subtitle">Genome Build: {{ build }}</div>
+            {% endif %}
+            <div class="generated">Generated {{ generated_at }} by AlphaOmega</div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            <strong>⚠️ Important Disclaimer:</strong>
+            This report is for <strong>educational and informational purposes only</strong>.
+            It is <strong>not a medical diagnostic tool</strong> and should not be used for
+            clinical decision-making. Genetic associations described here are based on
+            published research and may not apply to every individual. Always consult a
+            qualified healthcare professional or genetic counselor for medical advice.
+        </div>
+
+        <!-- Avatar Predictions -->
+        {% if avatar %}
+        <div class="avatar-section">
+            <h2>🧑‍🦱 Predicted Traits</h2>
+            <div class="avatar-grid">
+                {% for key, trait in avatar.items() %}
+                <div class="avatar-card" title="Computed from marker variants">
+                    <div class="icon">{{ trait.icon }}</div>
+                    <div class="content">
+                        <h3>{{ trait.label }}</h3>
+                        <p>{{ trait.description }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="number">{{ total_variants }}</div>
+                <div class="label">Annotated Variants</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ domain_count }}</div>
+                <div class="label">Trait Domains</div>
+            </div>
+            {% if notable_count is defined %}
+            <div class="stat-card">
+                <div class="number">{{ notable_count }}</div>
+                <div class="label">Notable Findings</div>
+            </div>
+            {% endif %}
+            {% if source_counts is defined %}
+            <div class="stat-card">
+                <div class="number">{{ source_counts.snpedia }}/{{ source_counts.clinvar }}</div>
+                <div class="label">SNPedia / ClinVar</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label for="filter-domain">Domain:</label>
+                <select id="filter-domain">
+                    <option value="all">All Domains</option>
+                    {% for domain_key, cluster in clusters.items() %}
+                    {% if cluster.variants|length > 0 %}
+                    <option value="{{ domain_key }}">{{ cluster.display_name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                    {% if drug_recommendations %}
+                    <option value="drug_interactions">Drug-Gene Interactions</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-significance">Significance:</label>
+                <select id="filter-significance">
+                    <option value="all">Any</option>
+                    <option value="pathogenic">Pathogenic / Risk</option>
+                    <option value="benign">Benign / Protective</option>
+                    <option value="uncertain">Uncertain / Other</option>
+                </select>
+            </div>
+            <div class="filter-group" style="margin-left: auto;">
+                <input type="checkbox" id="filter-notable">
+                <label for="filter-notable">Notable Findings Only (Mag &ge; 2 or Pathogenic)</label>
+            </div>
+        </div>
+
+        <!-- Domain Sections -->
+        {% for domain_key, cluster in clusters.items() %}
+        {% if cluster.variants|length > 0 %}
+        <div class="domain-section" data-domain="{{ domain_key }}">
+            <div class="domain-header">
+                <span class="domain-icon">{{ domain_icons.get(domain_key, '🔬') }}</span>
+                <h2>{{ cluster.display_name }}</h2>
+                <span class="badge">{{ cluster.variants|length }} variant{{ 's' if cluster.variants|length != 1
+                    }}</span>
+            </div>
+            <div class="domain-desc">{{ cluster.description }}</div>
+
+            <table class="variant-table">
+                <thead>
+                    <tr>
+                        <th>rsID</th>
+                        <th>Genotype</th>
+                        <th>Significance</th>
+                        <th>Summary</th>
+                        <th>Sources</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in cluster.variants %}
+                    <tr class="variant-row"
+                        data-notable="{% if (v.snpedia and v.snpedia.magnitude >= 2.0) or (v.clinvar and 'pathogenic' in v.clinvar.significance|lower) %}true{% else %}false{% endif %}"
+                        data-significance="{% if v.clinvar %}{% if 'pathogenic' in v.clinvar.significance|lower %}pathogenic{% elif 'benign' in v.clinvar.significance|lower %}benign{% else %}uncertain{% endif %}{% elif v.snpedia %}{% if v.snpedia.repute == 'bad' %}pathogenic{% elif v.snpedia.repute == 'good' %}benign{% else %}uncertain{% endif %}{% else %}unknown{% endif %}">
+                        <td>
+                            <a href="https://www.snpedia.com/index.php/{{ v.rsid }}" class="rsid-link"
+                                target="_blank">{{ v.rsid }}</a>
+                        </td>
+                        <td><span class="genotype">{{ v.genotype or '—' }}</span></td>
+                        <td>
+                            {% if v.snpedia %}
+                            <span class="mag-bar">
+                                <span class="mag-dot {{ v.snpedia.repute or 'unknown' }}"></span>
+                                {{ "%.1f"|format(v.snpedia.magnitude) }}
+                            </span>
+                            {% endif %}
+                            {% if v.clinvar %}
+                            <span class="significance
+                                {% if 'pathogenic' in v.clinvar.significance|lower %}sig-pathogenic
+                                {% elif 'benign' in v.clinvar.significance|lower %}sig-benign
+                                {% else %}sig-uncertain{% endif %}">
+                                {{ v.clinvar.significance }}
+                            </span>
+                            {% if v.clinvar.review_stars %}
+                            <span class="stars">{{ '★' * v.clinvar.review_stars }}{{ '☆' * (4 - v.clinvar.review_stars)
+                                }}</span>
+                            {% endif %}
+                            {% endif %}
+                            {% if v.pharmcat %}
+                            <span class="significance sig-pharma">💊 {{ v.pharmcat.phenotype }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="summary-text">
+                                {% if v.snpedia and v.snpedia.summary %}
+                                {{ v.snpedia.summary }}
+                                {% elif v.clinvar and v.clinvar.conditions %}
+                                {{ v.clinvar.conditions|join(', ') }}
+                                {% elif v.pharmcat %}
+                                {{ v.pharmcat.gene }}: {{ v.pharmcat.phenotype }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if v.snpedia %}<span title="SNPedia">S</span>{% endif %}
+                            {% if v.clinvar %}<span title="ClinVar">C</span>{% endif %}
+                            {% if v.pharmcat %}<span title="PharmCAT">P</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <!-- Pharmacogenomics Drug Table (if any) -->
+        {% if drug_recommendations %}
+        <div class="domain-section" data-domain="drug_interactions">
+            <div class="domain-header">
+                <span class="domain-icon">💊</span>
+                <h2>Drug-Gene Interactions</h2>
+                <span class="badge">{{ drug_recommendations|length }} interaction{{ 's' if drug_recommendations|length
+                    != 1 }}</span>
+            </div>
+            <table class="variant-table">
+                <thead>
+                    <tr>
+                        <th>Drug</th>
+                        <th>Gene</th>
+                        <th>Phenotype</th>
+                        <th>Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dr in drug_recommendations %}
+                    <tr class="variant-row" data-notable="true" data-significance="pathogenic">
+                        <td><strong>{{ dr.drug }}</strong></td>
+                        <td><span class="genotype">{{ dr.gene }}</span></td>
+                        <td>{{ dr.phenotype }}</td>
+                        <td class="summary-text">{{ dr.recommendation }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="report-footer">
+            <p>Generated by <strong>AlphaOmega</strong> — Local Genomic Analysis Pipeline</p>
+            <p>Data sources: SNPedia (Zenodo dump) · ClinVar (NCBI) · PharmCAT (CPIC)</p>
+            <p>This report is not a substitute for professional genetic counseling.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterDomain = document.getElementById('filter-domain');
+            const filterSignificance = document.getElementById('filter-significance');
+            const filterNotable = document.getElementById('filter-notable');
+
+            const domainSections = document.querySelectorAll('.domain-section');
+            const variantRows = document.querySelectorAll('.variant-row');
+
+            function applyFilters() {
+                const domainVal = filterDomain.value;
+                const sigVal = filterSignificance.value;
+                const notableVal = filterNotable.checked;
+
+                // Track visible rows per section
+                const sectionVisibleCounts = new Map();
+                domainSections.forEach(sec => sectionVisibleCounts.set(sec, 0));
+
+                variantRows.forEach(row => {
+                    const section = row.closest('.domain-section');
+                    const sectionDomain = section.dataset.domain;
+                    const rowNotable = row.dataset.notable === 'true';
+                    const rowSig = row.dataset.significance;
+
+                    let show = true;
+
+                    if (domainVal !== 'all' && sectionDomain !== domainVal) show = false;
+                    if (notableVal && !rowNotable) show = false;
+                    if (sigVal !== 'all' && rowSig !== sigVal) show = false;
+
+                    if (show) {
+                        row.classList.remove('hidden');
+                        sectionVisibleCounts.set(section, sectionVisibleCounts.get(section) + 1);
+                    } else {
+                        row.classList.add('hidden');
+                    }
+                });
+
+                // Hide empty sections and update batch counts
+                domainSections.forEach(sec => {
+                    const count = sectionVisibleCounts.get(sec);
+                    const badge = sec.querySelector('.badge');
+
+                    if (count === 0) {
+                        sec.classList.add('hidden');
+                    } else {
+                        sec.classList.remove('hidden');
+                        if (badge) {
+                            badge.textContent = count + ' variant' + (count !== 1 ? 's' : '');
+                        }
+                    }
+                });
+            }
+
+            filterDomain.addEventListener('change', applyFilters);
+            filterSignificance.addEventListener('change', applyFilters);
+            filterNotable.addEventListener('change', applyFilters);
+        });
+    </script>
+</body>
+
+</html>

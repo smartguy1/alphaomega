@@ -1,0 +1,15 @@
+# AlphaOmega - Local Genomic Analysis Pipeline
+# Phase 1: Core pipeline
+pysam>=0.22
+click>=8.1
+pyyaml>=6.0
+
+# Phase 2: Knowledge databases
+requests>=2.31
+
+# Phase 3: Annotation engine (no new deps)
+
+# Phase 4: Report generation (install when needed)
+jinja2>=3.1
+weasyprint>=61.0
+ollama>=0.4

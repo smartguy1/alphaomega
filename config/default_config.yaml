@@ -1,0 +1,40 @@
+# AlphaOmega Configuration
+
+# Paths (relative to project root)
+paths:
+  profiles_dir: "profiles"
+  database_dir: "db"
+  reference_dir: "reference"
+  output_dir: "output"
+  data_dir: "data"
+
+# Variant calling
+variant_calling:
+  min_quality: 20
+  min_depth: 5
+  threads: 4
+
+# Annotation thresholds
+annotation:
+  snpedia_min_magnitude: 2.0
+  clinvar_min_review_stars: 1
+  include_benign: false
+
+# LLM configuration (Phase 4 — do not activate yet)
+llm:
+  model: "medgemma:27b"          # Switch to "qwen3:30b" if needed
+  endpoint: "http://localhost:11434"
+  temperature: 0.3
+  max_tokens: 4096
+  narrative_mode: "biography"     # "clinical" or "biography"
+
+# SNPedia data source
+snpedia:
+  zenodo_record_id: "16053572"
+  update_interval_days: 30
+
+# ClinVar data source
+clinvar:
+  ftp_base: "https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/"
+  filename: "clinvar.vcf.gz"
+  update_interval_days: 7
